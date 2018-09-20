@@ -22,8 +22,10 @@
           </div>
           <div class="message-body">
             Correct. It's a <strong> {{this.correctAnswer}} </strong> move<br/>
-            {{this.currentPosition.message}}<br><a :href="this.currentPosition.url">Analyze in lichess.org</a><br/>
-            The winning variation: {{this.currentPosition.variation}} <br/>
+            {{this.currentPosition.message}}<br><a target="_blank" :href="this.currentPosition.url">Analyze in lichess.org</a><br/>
+            Variation: {{this.currentPosition.variation}} <br/>
+            <span class="button" @click="playVariation"> Replay Variation</span>
+            <span class="button" @click="resetPosition"> Reset Position</span> <br><br>
             <span class="button" @click="nextQuestion"> Next question</span>
           </div>
         </article>
@@ -33,8 +35,8 @@
           </div>
           <div class="message-body">
             Incorrect. It's a <strong> {{this.correctAnswer}} </strong> move<br/>
-            {{this.currentPosition.message}}  <br><a :href="this.currentPosition.url">Analyze in lichess.org</a><br/>
-            The refutation: {{this.currentPosition.variation}} <br/>
+            {{this.currentPosition.message}}  <br><a target="_blank" :href="this.currentPosition.url">Analyze in lichess.org</a><br/>
+            Variation: {{this.currentPosition.variation}} <br/>
             <span class="button" @click="nextQuestion"> Next question</span>
           </div>
         </article>
@@ -44,6 +46,7 @@
           </div>
           <div class="message-body">
             You got <strong> {{this.corrects}} </strong> correct answers in {{this.maxQuestions}} questions<br/>
+            Did you like it? Share it with your friends
             <span class="button" @click="startAgain"> Start Again</span>
           </div>
         </article>
@@ -73,12 +76,9 @@ export default {
     }
   },
   methods: {
-    randomNumber(min, max) {
-      return Math.floor(Math.random()*(max-min+1)+min);
-    },
     start(position) {
       let color = (position.color == 'w' ? 'White' : 'Black')
-      this.question = `${color} to move, is ${position.blunderMove.san} a winning move or a blunder?`
+      this.question = `${color} to move, is ${position.move.san} a winning move or a blunder?`
       this.correctAnswer = position.answer
       this.currentPosition = position
       this.answers = ['Winning', 'Blunder']
@@ -102,6 +102,12 @@ export default {
         this.$eventHub.$emit('next-question')
       }
       this.number++
+    },
+    playVariation() {
+      
+    },
+    resetPosition() {
+      
     },
     endGame() {
       this.showingResult = true

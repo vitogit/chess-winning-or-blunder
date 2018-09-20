@@ -51,7 +51,7 @@ import Chess from 'chess.js'
 import {chessboard} from 'vue-chessboard'
 import 'vue-chessboard/dist/vue-chessboard.css'
 import { shuffle } from './Util.js'
-import {defaultPositions} from './PositionData.js'
+import {defaultGames} from './PositionData.js'
 import QuestionGame from './components/QuestionGame'
 import StartModal from './components/StartModal'
 
@@ -79,12 +79,14 @@ export default {
       this.currentPosition = position
       this.$eventHub.$emit('game-changed', position)
       this.positionNumber++
+      
     },
     start(username){ //TODO improve this method
       if (username) {
         this.positions = this.getPositions(username)
       } else {
-        this.positions = defaultPositions()
+        let games = defaultGames().split("\n").filter(x => x !== "").map(x => JSON.parse(x))
+        this.positions = this.generatePositions(games)
       }
       if (this.positions.length < 10 ) {
         this.promptAgain()
@@ -113,13 +115,7 @@ export default {
           console.log('Something wrong with ajax:', error);
         }
       });
-      let loadedGame = new Chess()
-      let blunders = this.findBlunders(games)
-      let blunderPositions = this.generateBlunderPositions(blunders)
-      let tacticPositions = this.generateTacticPositions(blunders)
-      let positions = shuffle(blunderPositions.concat( tacticPositions))
-      console.log("positions________",positions)
-      return positions
+      return this.generatePositions(games)
     },
     findBlunders(games) {
       let blunders = []
@@ -136,6 +132,29 @@ export default {
         }
       }
       return blunders
+    },
+    findTactics(games) {
+      let tactics = []
+      for (let game of games) {
+        let lastEval = 0
+        for (let [index, move] of game.analysis.entries() ) {
+          if (move.judgment && move.judgment.name == 'Blunder' && index > 0) {
+            let prevMove = game.analysis[index-1]
+            if (prevMove.judgment && prevMove.judgment.name == 'Blunder') {
+              tactics.push({'game': game, 'index': index-1, 'eval':move.eval, 'variation': move.variation})
+            }
+          }
+        }
+      }
+      return tactics
+    },
+    generatePositions(games) {
+      let blunders = this.findBlunders(games)
+      let tactics = this.findTactics(games)
+      let blunderPositions = this.generateBlunderPositions(blunders)
+      let tacticPositions = this.generateTacticPositions(tactics)
+      let positions = shuffle(blunderPositions.concat( tacticPositions))
+      return positions.slice(0,10)
     },
     generateBlunderPositions(blunders) {
       let positions = []
@@ -158,7 +177,7 @@ export default {
             let nextMove = moves[move_index+1]
             if ( blunder.game.analysis[blunder.index+1] ) {
               refutationMove = blunder.game.analysis[blunder.index+1].variation || nextMove
-              refutationMove = refutationMove.slice(0, 4)
+              refutationMove = refutationMove
             }
             break
           }
@@ -171,20 +190,16 @@ export default {
           prevEval = typeof prevEval === "undefined" ? 'mate:'+blunder.game.analysis[blunder.index-1].mate : prevEval.toString()
         }
 
-        // if  ( (blunderMove.color == 'w' && blunder.game.players.white.user.id.toLowerCase()  == this.username)  || 
-        //       (blunderMove.color == 'b' && blunder.game.players.black.user.id.toLowerCase()  == this.username)) {
-
         let position = {fen: game.fen(),
                         white:blunder.game.players.white.user.id, 
                         black:blunder.game.players.black.user.id,
-                        url: `http://lichess.org/${blunder.game.id}#${blunder.index}`,
+                        url: `http://lichess.org/${blunder.game.id}#${blunder.index+1}`,
                         variation: refutationMove,
                         message: `From ${prevEval} to ${termination}`,
-                        blunderMove: blunderMove,
+                        move: blunderMove,
                         color: blunderMove.color, 
                         answer: 'Blunder' }
         positions.push(position)
-        // }
       }
       return positions
     },
@@ -200,7 +215,6 @@ export default {
           blunderMove = game.move(move)
 
           if (index == blunder.index) {
-            game.undo()
             termination = blunder.game.analysis[index].eval
             termination = (typeof termination === "undefined" ? 'mate:'+blunder.game.analysis[index].mate : termination.toString())
             if ((index+1)%2 != 0) { //The blunder move was made by white. so black wins
@@ -214,18 +228,16 @@ export default {
           prevEval =  blunder.game.analysis[blunder.index-1].eval 
           prevEval = typeof prevEval === "undefined" ? 'mate:'+blunder.game.analysis[blunder.index-1].mate : prevEval.toString()
         }        
-        let fen = game.fen()
-        let variation = blunder.variation.split(' ').slice(0, 6);
-        variation.unshift(blunderMove.san)
-        game = new Chess(fen)
+        let turn = game.turn()
+        let variation = blunder.variation.split(' ')
         let position = {fen: game.fen(),
                         white: blunder.game.players.white.user.id, 
                         black: blunder.game.players.black.user.id,
-                        url: `http://lichess.org/${blunder.game.id}#${blunder.index}`,
+                        url: `http://lichess.org/${blunder.game.id}#${blunder.index+1}`,
                         variation: variation, 
                         message: `From ${prevEval} to ${termination}`,
-                        blunderMove: blunderMove, 
-                        color: game.turn(), 
+                        move: game.move(variation[0]), //The first move of the tactic is a winning move
+                        color: turn, 
                         answer: 'Winning'
                       }
         positions.push(position)
