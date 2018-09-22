@@ -4,15 +4,14 @@
       <div class="hero-body">
         <div class="container">
           <h1 class="title">
-            {{number}} -  {{question}}
+            {{number}} - <span v-html="question"></span>
           </h1>
         </div>
       </div>
     </section>
     <section class="hero" ref="answers">
       <div class="buttons is-centered" v-if="!showingResult">
-        <span @click="verifyAnswer(answer)" class="button" v-for="answer in answers">
-          {{ answer }}
+        <span v-html="answer" @click="verifyAnswer(answer)" class="button is-large" v-for="answer in answers">
         </span>
       </div>
       <div class="is-centered" v-if="showingResult">
@@ -21,11 +20,10 @@
             <p>Correct</p>
           </div>
           <div class="message-body">
-            Correct. It's a <strong> {{this.correctAnswer}} </strong> move<br/>
-            {{this.currentPosition.message}}<br><a target="_blank" :href="this.currentPosition.url">Analyze in lichess.org</a><br/>
-            Variation: {{this.currentPosition.variation}} <br/>
-            <span class="button" @click="playVariation"> Replay Variation</span>
-            <span class="button" @click="resetPosition"> Reset Position</span> <br><br>
+            Correct. It's a <strong> {{this.correctAnswer}} </strong> move.
+            {{this.currentPosition.message}}<br>
+            You can play the variation in the board: {{this.currentPosition.variation}} <br/>
+            <a target="_blank"  class="button" :href="this.currentPosition.url">Analyze in lichess.org</a>
             <span class="button" @click="nextQuestion"> Next question</span>
           </div>
         </article>
@@ -78,7 +76,7 @@ export default {
   methods: {
     start(position) {
       let color = (position.color == 'w' ? 'White' : 'Black')
-      this.question = `${color} to move, is ${position.move.san} a winning move or a blunder?`
+      this.question = `${color} to move, is <span class="highlight">${position.move.san}</span> a winning move or a blunder?`
       this.correctAnswer = position.answer
       this.currentPosition = position
       this.answers = ['Winning', 'Blunder']
@@ -129,3 +127,10 @@ export default {
   }
 }
 </script>
+<style>
+.highlight {
+  color: #000;
+  background-color: #ff0;
+  padding: 0 5px;
+}
+</style>

@@ -177,7 +177,7 @@ export default {
             let nextMove = moves[move_index+1]
             if ( blunder.game.analysis[blunder.index+1] ) {
               refutationMove = blunder.game.analysis[blunder.index+1].variation || nextMove
-              refutationMove = refutationMove
+              refutationMove = [refutationMove]
             }
             break
           }
@@ -189,12 +189,13 @@ export default {
           prevEval =  blunder.game.analysis[blunder.index-1].eval 
           prevEval = typeof prevEval === "undefined" ? 'mate:'+blunder.game.analysis[blunder.index-1].mate : prevEval.toString()
         }
+        refutationMove.unshift(blunderMove.san)
 
         let position = {fen: game.fen(),
                         white:blunder.game.players.white.user.id, 
                         black:blunder.game.players.black.user.id,
                         url: `http://lichess.org/${blunder.game.id}#${blunder.index+1}`,
-                        variation: refutationMove,
+                        variation: refutationMove.join(' '),
                         message: `From ${prevEval} to ${termination}`,
                         move: blunderMove,
                         color: blunderMove.color, 
@@ -234,7 +235,7 @@ export default {
                         white: blunder.game.players.white.user.id, 
                         black: blunder.game.players.black.user.id,
                         url: `http://lichess.org/${blunder.game.id}#${blunder.index+1}`,
-                        variation: variation, 
+                        variation: variation.join(' '), 
                         message: `From ${prevEval} to ${termination}`,
                         move: game.move(variation[0]), //The first move of the tactic is a winning move
                         color: turn, 

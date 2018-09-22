@@ -1,7 +1,7 @@
 {
-  "name": "vue-chess-guardian",
+  "name": "chess-winning-or-blunder",
   "version": "1.0.0",
-  "description": "Chess training exercices in Vue.js",
+  "description": "Answer if the move is winning or blunder",
   "author": "vitogit <vitogit@users.noreply.github.com>",
   "private": true,
   "scripts": {
