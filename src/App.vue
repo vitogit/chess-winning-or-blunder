@@ -77,9 +77,13 @@ export default {
     nextQuestion() {
       let position = this.positions[this.positionNumber]
       this.currentPosition = position
+      console.log("this.currentPosition________",this.currentPosition)
       this.$eventHub.$emit('game-changed', position)
+      let arrows = []
+      arrows.push({orig: position.move.from, dest: position.move.to, brush: 'red'})
+      //TODO improve this
+      vm.$children[0].$children[0].board.setShapes(arrows)      
       this.positionNumber++
-      
     },
     start(username){ //TODO improve this method
       if (username) {
@@ -104,10 +108,11 @@ export default {
       let games = []
       jQuery.ajax({
         method: 'GET',
-        url: `https://lichess.org/games/export/${username}?max=50&analysed=true&evals=true&moves=true&perfType=blitz,rapid,classical`,
+        url: `https://lichess.org/games/export/${username}?max=50&analysed=true&evals=true&moves=true&perfType=bullet,blitz,rapid,classical`,
         async: false,
         headers: {'Accept': 'application/x-ndjson'},
         success: function (data) {
+          console.log("data________",data)
           games = data.split("\n").filter(x => x !== "").map(x => JSON.parse(x))
           games = games.slice(0,10) //get 10 blunders for testing
         },
@@ -149,20 +154,21 @@ export default {
       return tactics
     },
     generatePositions(games) {
-      let blunders = this.findBlunders(games)
-      let tactics = this.findTactics(games)
+      let blunders = this.findBlunders(games).slice(0,8)
+      let tactics = this.findTactics(games).slice(0,8)
       let blunderPositions = this.generateBlunderPositions(blunders)
       let tacticPositions = this.generateTacticPositions(tactics)
       let positions = shuffle(blunderPositions.concat( tacticPositions))
       return positions.slice(0,10)
     },
     generateBlunderPositions(blunders) {
+      console.log("blunders________",blunders)
       let positions = []
       for (let [index, blunder] of blunders.entries() ) {
         let game = new Chess()
         let moves = blunder.game.moves.split(' ')
         let blunderMove = {}
-        let refutationMove = {}
+        let refutationMove = []
         let result = '1-0'
         let termination = 0
         for (let [move_index, move] of moves.entries()) {
@@ -177,7 +183,7 @@ export default {
             let nextMove = moves[move_index+1]
             if ( blunder.game.analysis[blunder.index+1] ) {
               refutationMove = blunder.game.analysis[blunder.index+1].variation || nextMove
-              refutationMove = [refutationMove]
+              refutationMove = refutationMove.split(' ')
             }
             break
           }
@@ -189,6 +195,7 @@ export default {
           prevEval =  blunder.game.analysis[blunder.index-1].eval 
           prevEval = typeof prevEval === "undefined" ? 'mate:'+blunder.game.analysis[blunder.index-1].mate : prevEval.toString()
         }
+        console.log("refutationMove________",refutationMove)
         refutationMove.unshift(blunderMove.san)
 
         let position = {fen: game.fen(),
@@ -267,7 +274,7 @@ export default {
           title: title,
           message: message,
           inputAttrs: {
-            placeholder: 'e.g. e4Guardian',
+            placeholder: 'Lichess Username',
             maxlength: 20
           },
           type: type,
