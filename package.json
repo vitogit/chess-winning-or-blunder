@@ -13,7 +13,7 @@
     "publish": "npm run build && rm -rf docs; cp -r dist docs && sed -i -e 's@src=\\/@src=@g' docs/index.html ; sed -i -e 's@href=\\/@href=@g' docs/index.html"
   },
   "dependencies": {
-    "buefy": "^0.6.2",
+    "buefy": "^0.6.7",
     "jquery": "^3.2.1",
     "vue": "^2.5.2",
     "vue-chessboard": "^0.6.1"

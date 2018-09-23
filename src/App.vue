@@ -40,7 +40,7 @@
         </div>
       </div>
     </section>
-    <a href="https://github.com/vitogit/vue-chess-guardian"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://camo.githubusercontent.com/38ef81f8aca64bb9a64448d0d70f1308ef5341ab/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f6461726b626c75655f3132313632312e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png"></a>              </div>
+    <a href="https://github.com/vitogit/chess-winning-or-blunder"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://camo.githubusercontent.com/38ef81f8aca64bb9a64448d0d70f1308ef5341ab/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f6461726b626c75655f3132313632312e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png"></a>              </div>
   </div>
 
 </template>
@@ -77,15 +77,17 @@ export default {
     nextQuestion() {
       let position = this.positions[this.positionNumber]
       this.currentPosition = position
-      console.log("this.currentPosition________",this.currentPosition)
       this.$eventHub.$emit('game-changed', position)
       let arrows = []
       arrows.push({orig: position.move.from, dest: position.move.to, brush: 'red'})
-      //TODO improve this
-      vm.$children[0].$children[0].board.setShapes(arrows)      
       this.positionNumber++
+      
+      //TODO improve this
+      this.$nextTick(function () {
+        vm.$children[0].$children[0].board.setShapes(arrows)
+      })
     },
-    start(username){ //TODO improve this method
+    start(username){
       if (username) {
         this.positions = this.getPositions(username)
       } else {
@@ -104,7 +106,6 @@ export default {
       username = username || 'e4Guardian'
       username = username.replace(/\s/g, '').toLowerCase()
       this.username = username
-      this.$toast.open(`Pulling positions from: ${username}`)
       let games = []
       jQuery.ajax({
         method: 'GET',
@@ -112,9 +113,7 @@ export default {
         async: false,
         headers: {'Accept': 'application/x-ndjson'},
         success: function (data) {
-          console.log("data________",data)
           games = data.split("\n").filter(x => x !== "").map(x => JSON.parse(x))
-          games = games.slice(0,10) //get 10 blunders for testing
         },
         error: function (error) {
           console.log('Something wrong with ajax:', error);
@@ -145,7 +144,8 @@ export default {
         for (let [index, move] of game.analysis.entries() ) {
           if (move.judgment && move.judgment.name == 'Blunder' && index > 0) {
             let prevMove = game.analysis[index-1]
-            if (prevMove.judgment && prevMove.judgment.name == 'Blunder') {
+            if (prevMove.judgment && prevMove.judgment.name == 'Blunder' && ((prevMove.eval > -300 && prevMove.eval < 950 && move.eval < 300) ||  //for white
+               (prevMove.eval < 300 && prevMove.eval > -950 && move.eval > -300 ))){ // for black            
               tactics.push({'game': game, 'index': index-1, 'eval':move.eval, 'variation': move.variation})
             }
           }
@@ -162,7 +162,6 @@ export default {
       return positions.slice(0,10)
     },
     generateBlunderPositions(blunders) {
-      console.log("blunders________",blunders)
       let positions = []
       for (let [index, blunder] of blunders.entries() ) {
         let game = new Chess()
@@ -195,7 +194,6 @@ export default {
           prevEval =  blunder.game.analysis[blunder.index-1].eval 
           prevEval = typeof prevEval === "undefined" ? 'mate:'+blunder.game.analysis[blunder.index-1].mate : prevEval.toString()
         }
-        console.log("refutationMove________",refutationMove)
         refutationMove.unshift(blunderMove.san)
 
         let position = {fen: game.fen(),
@@ -278,7 +276,14 @@ export default {
             maxlength: 20
           },
           type: type,
-          onConfirm: (data) => this.start(data.username),
+          onConfirm: (data) => {
+            this.$toast.open(`Downloading and processing. Wait a minute`)
+            let loading = this.$loading.open()
+            setTimeout(() => {
+              this.start(data.username)
+              loading.close()
+            }, 150)
+          },
           onCancel: () => this.start()
         }
       })

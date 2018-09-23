@@ -33,8 +33,9 @@
           </div>
           <div class="message-body">
             Incorrect. It's a <strong> {{this.correctAnswer}} </strong> move<br/>
-            {{this.currentPosition.message}}  <br><a target="_blank" :href="this.currentPosition.url">Analyze in lichess.org</a><br/>
-            Variation: {{this.currentPosition.variation}} <br/>
+            {{this.currentPosition.message}}  <br>
+            You can play the variation in the board: {{this.currentPosition.variation}} <br/>
+            <a target="_blank"  class="button" :href="this.currentPosition.url">Analyze in lichess.org</a>
             <span class="button" @click="nextQuestion"> Next question</span>
           </div>
         </article>
