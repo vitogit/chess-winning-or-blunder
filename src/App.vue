@@ -7,7 +7,7 @@
             <div>
               <a href="/">
                 <p class="title">Winning or Blunder (beta)</p>
-                <p class="subtitle">Answer if it's a winning move or a blunder, from your own games.</p>
+                <p class="subtitle">Answer if it's the best move or a blunder, from your own games.</p>
               </a>
             </div>
             <div id="navbarMenu" class="navbar-menu">
@@ -196,9 +196,11 @@ export default {
         }
         refutationMove.unshift(blunderMove.san)
 
+        let whitePlayer = (blunder.game.players.white.user ? blunder.game.players.white.user.id : 'Anon')
+        let blackPlayer = (blunder.game.players.black.user ? blunder.game.players.black.user.id : 'Anon')
         let position = {fen: game.fen(),
-                        white:blunder.game.players.white.user.id, 
-                        black:blunder.game.players.black.user.id,
+                        white: whitePlayer, 
+                        black: blackPlayer,
                         url: `http://lichess.org/${blunder.game.id}#${blunder.index+1}`,
                         variation: refutationMove.join(' '),
                         message: `From ${prevEval} to ${termination}`,
@@ -236,9 +238,12 @@ export default {
         }        
         let turn = game.turn()
         let variation = blunder.variation.split(' ')
+
+        let whitePlayer = (blunder.game.players.white.user ? blunder.game.players.white.user.id : 'Anon')
+        let blackPlayer = (blunder.game.players.black.user ? blunder.game.players.black.user.id : 'Anon')
         let position = {fen: game.fen(),
-                        white: blunder.game.players.white.user.id, 
-                        black: blunder.game.players.black.user.id,
+                        white: whitePlayer, 
+                        black: blackPlayer,
                         url: `http://lichess.org/${blunder.game.id}#${blunder.index+1}`,
                         variation: variation.join(' '), 
                         message: `From ${prevEval} to ${termination}`,
