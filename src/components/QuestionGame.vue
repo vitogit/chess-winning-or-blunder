@@ -80,7 +80,7 @@ export default {
       this.question = `${color} to move, is <span class="highlight">${position.move.san}</span> the best move or a blunder?`
       this.correctAnswer = position.answer
       this.currentPosition = position
-      this.answers = ['Best move', 'Blunder']
+      this.answers = ['Winning', 'Blunder']
     },
     verifyAnswer(answer) {
       if (answer == this.correctAnswer) {
