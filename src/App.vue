@@ -249,7 +249,7 @@ export default {
                         message: `From ${prevEval} to ${termination}`,
                         move: game.move(variation[0]), //The first move of the tactic is a winning move
                         color: turn, 
-                        answer: 'Winning'
+                        answer: 'Best move'
                       }
         positions.push(position)
       }

@@ -20,7 +20,7 @@
             <p>Correct</p>
           </div>
           <div class="message-body">
-            Correct. It's a <strong> {{this.correctAnswer}} </strong> move.
+            Correct. It's {{this.correctAnswer=='Best move' ? 'the': 'a' }} <strong> {{this.correctAnswer}} </strong>.
             {{this.currentPosition.message}}<br>
             You can play the variation in the board: {{this.currentPosition.variation}} <br/>
             <a target="_blank"  class="button" :href="this.currentPosition.url">Analyze in lichess.org</a>
@@ -32,7 +32,7 @@
             <p>Incorrect</p>
           </div>
           <div class="message-body">
-            Incorrect. It's a <strong> {{this.correctAnswer}} </strong> move<br/>
+            Incorrect. It's {{this.correctAnswer=='Best move' ? 'the': 'a' }} <strong> {{this.correctAnswer}} </strong><br/>
             {{this.currentPosition.message}}  <br>
             You can play the variation in the board: {{this.currentPosition.variation}} <br/>
             <a target="_blank"  class="button" :href="this.currentPosition.url">Analyze in lichess.org</a>
