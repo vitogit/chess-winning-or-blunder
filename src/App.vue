@@ -154,8 +154,8 @@ export default {
       return tactics
     },
     generatePositions(games) {
-      let blunders = this.findBlunders(games).slice(0,8)
-      let tactics = this.findTactics(games).slice(0,8)
+      let blunders = shuffle(this.findBlunders(games)).slice(0,8)
+      let tactics = shuffle(this.findTactics(games)).slice(0,8)
       let blunderPositions = this.generateBlunderPositions(blunders)
       let tacticPositions = this.generateTacticPositions(tactics)
       let positions = shuffle(blunderPositions.concat( tacticPositions))
