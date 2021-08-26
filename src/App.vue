@@ -113,9 +113,7 @@ export default {
         async: false,
         headers: {'Accept': 'application/x-ndjson'},
         success: function (data) {
-          console.log(data)
           games = data.split("\n").filter(x => x !== "").map(x => JSON.parse(x))
-          console.log('games', games)
         },
         error: function (error) {
           console.log('Something wrong with ajax:', error);
@@ -161,6 +159,7 @@ export default {
       let blunderPositions = this.generateBlunderPositions(blunders)
       let tacticPositions = this.generateTacticPositions(tactics)
       let positions = shuffle(blunderPositions.concat( tacticPositions))
+      this.savedPositions = positions
       return positions.slice(0,10)
     },
     generateBlunderPositions(blunders) {
@@ -301,6 +300,7 @@ export default {
   },
   created() {
     this.positions = []
+    this.savedPositions = []
     this.$eventHub.$on('paint-threats', () => {
       this.showThreats = true
     })
@@ -312,7 +312,8 @@ export default {
     this.$eventHub.$on('start-again', () => {
       this.showThreats = false
       this.positionNumber = 0
-      this.positions = shuffle(this.positions)
+      this.savedPositions = shuffle(this.savedPositions)
+      this.positions = this.savedPositions.slice(0,10)
       this.nextQuestion()
     })
   }
