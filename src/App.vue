@@ -81,7 +81,7 @@ export default {
       let arrows = []
       arrows.push({orig: position.move.from, dest: position.move.to, brush: 'red'})
       this.positionNumber++
-      
+
       //TODO improve this
       this.$nextTick(function () {
         vm.$children[0].$children[0].board.setShapes(arrows)
@@ -109,11 +109,13 @@ export default {
       let games = []
       jQuery.ajax({
         method: 'GET',
-        url: `https://lichess.org/games/export/${username}?max=50&analysed=true&evals=true&moves=true&perfType=bullet,blitz,rapid,classical`,
+        url: `https://lichess.org/api/games/user/${username}?max=50&analysed=true&evals=true&moves=true&perfType=bullet,blitz,rapid,classical`,
         async: false,
         headers: {'Accept': 'application/x-ndjson'},
         success: function (data) {
+          console.log(data)
           games = data.split("\n").filter(x => x !== "").map(x => JSON.parse(x))
+          console.log('games', games)
         },
         error: function (error) {
           console.log('Something wrong with ajax:', error);
@@ -145,7 +147,7 @@ export default {
           if (move.judgment && move.judgment.name == 'Blunder' && index > 0) {
             let prevMove = game.analysis[index-1]
             if (prevMove.judgment && prevMove.judgment.name == 'Blunder' && ((prevMove.eval > -300 && prevMove.eval < 950 && move.eval < 300) ||  //for white
-               (prevMove.eval < 300 && prevMove.eval > -950 && move.eval > -300 ))){ // for black            
+               (prevMove.eval < 300 && prevMove.eval > -950 && move.eval > -300 ))){ // for black
               tactics.push({'game': game, 'index': index-1, 'eval':move.eval, 'variation': move.variation})
             }
           }
@@ -191,7 +193,7 @@ export default {
         let variation = blunder.variation.split(' ')
         let prevEval = 0
         if (index > 0) {
-          prevEval =  blunder.game.analysis[blunder.index-1].eval 
+          prevEval =  blunder.game.analysis[blunder.index-1].eval
           prevEval = typeof prevEval === "undefined" ? 'mate:'+blunder.game.analysis[blunder.index-1].mate : prevEval.toString()
         }
         refutationMove.unshift(blunderMove.san)
@@ -199,13 +201,13 @@ export default {
         let whitePlayer = (blunder.game.players.white.user ? blunder.game.players.white.user.id : 'Anon')
         let blackPlayer = (blunder.game.players.black.user ? blunder.game.players.black.user.id : 'Anon')
         let position = {fen: game.fen(),
-                        white: whitePlayer, 
+                        white: whitePlayer,
                         black: blackPlayer,
                         url: `http://lichess.org/${blunder.game.id}#${blunder.index+1}`,
                         variation: refutationMove.join(' '),
                         message: `From ${prevEval} to ${termination}`,
                         move: blunderMove,
-                        color: blunderMove.color, 
+                        color: blunderMove.color,
                         answer: 'Blunder' }
         positions.push(position)
       }
@@ -233,28 +235,28 @@ export default {
         }
         let prevEval = 0
         if (index > 0) {
-          prevEval =  blunder.game.analysis[blunder.index-1].eval 
+          prevEval =  blunder.game.analysis[blunder.index-1].eval
           prevEval = typeof prevEval === "undefined" ? 'mate:'+blunder.game.analysis[blunder.index-1].mate : prevEval.toString()
-        }        
+        }
         let turn = game.turn()
         let variation = blunder.variation.split(' ')
 
         let whitePlayer = (blunder.game.players.white.user ? blunder.game.players.white.user.id : 'Anon')
         let blackPlayer = (blunder.game.players.black.user ? blunder.game.players.black.user.id : 'Anon')
         let position = {fen: game.fen(),
-                        white: whitePlayer, 
+                        white: whitePlayer,
                         black: blackPlayer,
                         url: `http://lichess.org/${blunder.game.id}#${blunder.index+1}`,
-                        variation: variation.join(' '), 
+                        variation: variation.join(' '),
                         message: `From ${prevEval} to ${termination}`,
                         move: game.move(variation[0]), //The first move of the tactic is a winning move
-                        color: turn, 
+                        color: turn,
                         answer: 'Best move'
                       }
         positions.push(position)
       }
       return positions
-    },      
+    },
     promptAgain() {
       this.genericPrompt({
         title: 'ERROR',
